@@ -148,8 +148,8 @@ void rockchip_dnl_mode_check(void)
 	/* recovery key or "ctrl+d" */
 	if (rockchip_dnl_key_pressed() ||
 	    is_hotkey(HK_ROCKUSB_DNL)) {
-		printf("download key pressed... ");
-		if (rockchip_u2phy_vbus_detect() > 0) {
+		printf("download key pressed...\n");
+		if (1) {
 			printf("entering download mode...\n");
 			/* If failed, we fall back to bootrom download mode */
 			run_command_list("rockusb 0 ${devtype} ${devnum}", -1, 0);
