@@ -25,9 +25,26 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_FMAN_ENET
+__weak int fdt_update_ethernet_dt(void *blob)
+{
+	return 0;
+}
+#endif
+
+__weak int board_fdt_fixup(void *blob)
+{
+	return 0;
+}
+
 int arch_fixup_fdt(void *blob)
 {
 	int ret = 0;
+
+	ret = board_fdt_fixup(blob);
+	if (ret)
+		return ret;
+
 #if defined(CONFIG_ARMV7_NONSEC) || defined(CONFIG_OF_LIBFDT)
 	bd_t *bd = gd->bd;
 	int bank;
@@ -37,6 +54,11 @@ int arch_fixup_fdt(void *blob)
 	for (bank = 0; bank < CONFIG_NR_DRAM_BANKS; bank++) {
 		start[bank] = bd->bi_dram[bank].start;
 		size[bank] = bd->bi_dram[bank].size;
+		if (size[bank] == 0)
+			continue;
+		printf("Adding bank: 0x%08llx - 0x%08llx (size: 0x%08llx)\n",
+		       start[bank], start[bank] + size[bank], size[bank]);
+
 #ifdef CONFIG_ARMV7_NONSEC
 		ret = armv7_apply_memory_carveout(&start[bank], &size[bank]);
 		if (ret)
@@ -64,5 +86,10 @@ int arch_fixup_fdt(void *blob)
 #endif
 #endif
 
+#ifdef CONFIG_FMAN_ENET
+	ret = fdt_update_ethernet_dt(blob);
+	if (ret)
+		return ret;
+#endif
 	return 0;
 }
